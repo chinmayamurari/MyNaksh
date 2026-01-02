@@ -37,33 +37,26 @@ interface MessageBubbleProps {
   item: Message
 }
 
+const SWIPE_THRESHOLD = 80 // Minimum swipe distance to trigger reply
+const MAX_SWIPE = 100 // Maximum swipe distance
+const REACTION_BAR_AUTO_DISMISS_TIME = 3000 // 3 seconds
+
+
 export const MessageBubble = React.memo(({
   item,
 }: MessageBubbleProps) => {
 
-  
+
   const handleReaction = useChatStore((state) => state.handleReaction)
   const setReplyingTo = useChatStore((state) => state.setReplyingTo)
-  
-  // --------------------------------------------------------------------------
-  // Constants
-  // --------------------------------------------------------------------------
-  const SWIPE_THRESHOLD = 80 // Minimum swipe distance to trigger reply
-  const MAX_SWIPE = 100 // Maximum swipe distance
-  const REACTION_BAR_AUTO_DISMISS_TIME = 3000 // 3 seconds
-
-  // --------------------------------------------------------------------------
-  // Derived Values
-  // --------------------------------------------------------------------------
-  const isUser = item.sender === 'user'
-  const isSystem = item.sender === 'system'
-
-  // --------------------------------------------------------------------------
-  // State & Refs
-  // --------------------------------------------------------------------------
   const [showReactionBar, setShowReactionBar] = useState(false)
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const translateX = useSharedValue(0) // Reanimated shared value for swipe gesture
+
+
+  const isUser = item.sender === 'user'
+  const isSystem = item.sender === 'system'
+
 
   // --------------------------------------------------------------------------
   // Effects
