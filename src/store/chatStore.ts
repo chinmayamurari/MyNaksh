@@ -16,6 +16,8 @@ interface ChatState {
   addMessage: (message: Message) => void
   setReplyingTo: (message: Message | null) => void
   handleReaction: (messageId: string, emoji: string) => void
+  handleFeedback: (messageId: string, feedbackType: 'liked' | 'disliked' | null) => void
+  handleFeedbackChip: (messageId: string, chip: string) => void
   sendMessage: (text: string) => void
   clearMessages: () => void
 }
@@ -95,6 +97,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
         // Toggle if same emoji, replace if different
         const newReaction = msg.reaction === emoji ? undefined : emoji
         return { ...msg, reaction: newReaction }
+      }
+      return msg
+    })
+  })),
+
+  // Handle feedback (like/dislike)
+  handleFeedback: (messageId: string, feedbackType: 'liked' | 'disliked' | null) => set((currentState) => ({
+    messages: currentState.messages.map((msg) => {
+      if (msg.id === messageId) {
+        // If switching from dislike to like, clear chips
+        const feedbackChips = feedbackType === 'liked' ? [] : msg.feedbackChips
+        return { ...msg, feedbackType, feedbackChips }
+      }
+      return msg
+    })
+  })),
+
+  // Handle feedback chip selection
+  handleFeedbackChip: (messageId: string, chip: string) => set((currentState) => ({
+    messages: currentState.messages.map((msg) => {
+      if (msg.id === messageId) {
+        const currentChips = msg.feedbackChips || []
+        // Toggle chip selection
+        const newChips = currentChips.includes(chip)
+          ? currentChips.filter((c) => c !== chip)
+          : [...currentChips, chip]
+        return { ...msg, feedbackChips: newChips }
       }
       return msg
     })

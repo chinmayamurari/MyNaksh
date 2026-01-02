@@ -14,6 +14,7 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated'
 import { MessageContent } from './atoms/MessageContent'
+import { FeedbackToggle } from './atoms/FeedbackToggle'
 import { useChatStore } from '../store/chatStore'
 import { styles } from './styles/MessageBubble.styles'
 import { formatTime, getSenderLabel } from './utils/messageBubble.utils'
@@ -28,7 +29,8 @@ export interface Message {
   timestamp: number
   type: string
   hasFeedback?: boolean
-  feedbackType?: string
+  feedbackType?: 'liked' | 'disliked' | null
+  feedbackChips?: string[]
   replyTo?: string
   reaction?: string
 }
@@ -45,6 +47,8 @@ export const MessageBubble = React.memo(({
 
 
   const handleReaction = useChatStore((state) => state.handleReaction)
+  const handleFeedback = useChatStore((state) => state.handleFeedback)
+  const handleFeedbackChip = useChatStore((state) => state.handleFeedbackChip)
   const setReplyingTo = useChatStore((state) => state.setReplyingTo)
   const [showReactionBar, setShowReactionBar] = useState(false)
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -53,6 +57,7 @@ export const MessageBubble = React.memo(({
 
   const isUser = item.sender === 'user'
   const isSystem = item.sender === 'system'
+  const isAI = item.sender === 'ai_astrologer'
 
   const SWIPE_THRESHOLD = 80 // Minimum swipe distance to trigger reply
   const MAX_SWIPE = 100 // Maximum swipe distance
@@ -222,6 +227,14 @@ export const MessageBubble = React.memo(({
       <Text style={[styles.timestamp, isUser && styles.userTimestamp]}>
         {formatTime(item.timestamp)}
       </Text>
+      {isAI && (
+        <FeedbackToggle
+          feedbackType={item.feedbackType || null}
+          selectedChips={item.feedbackChips || []}
+          onFeedbackChange={(type) => handleFeedback(item.id, type)}
+          onChipSelect={(chip) => handleFeedbackChip(item.id, chip)}
+        />
+      )}
     </View>
   )
 
@@ -240,7 +253,9 @@ export const MessageBubble = React.memo(({
     prevProps.item.text === nextProps.item.text &&
     prevProps.item.sender === nextProps.item.sender &&
     prevProps.item.timestamp === nextProps.item.timestamp &&
-    prevProps.item.reaction === nextProps.item.reaction
+    prevProps.item.reaction === nextProps.item.reaction &&
+    prevProps.item.feedbackType === nextProps.item.feedbackType &&
+    JSON.stringify(prevProps.item.feedbackChips) === JSON.stringify(nextProps.item.feedbackChips)
   )
 })
 
