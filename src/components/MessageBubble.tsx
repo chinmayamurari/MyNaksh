@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     left: -60,
   },
   replyIconContainerOther: {
-    left: -60, // Always on the left side for right swipe
+    left: 0, // Always on the left side for right swipe
   },
   replyIcon: {
     fontSize: 24,
