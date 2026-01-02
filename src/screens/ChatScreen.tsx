@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import { 
   FlatList, 
   StyleSheet,
@@ -60,15 +60,6 @@ const mockData: Message[] = [
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>(mockData)
   const flatListRef = useRef<FlatList>(null)
-
-  // Auto-scroll to bottom when new message is added
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true })
-      }, 100)
-    }
-  }, [messages.length])
 
   const handleSend = useCallback((messageText: string) => {
     const newMessage: Message = {
