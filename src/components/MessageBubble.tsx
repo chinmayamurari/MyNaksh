@@ -37,9 +37,6 @@ interface MessageBubbleProps {
   item: Message
 }
 
-const SWIPE_THRESHOLD = 80 // Minimum swipe distance to trigger reply
-const MAX_SWIPE = 100 // Maximum swipe distance
-const REACTION_BAR_AUTO_DISMISS_TIME = 3000 // 3 seconds
 
 
 export const MessageBubble = React.memo(({
@@ -57,7 +54,9 @@ export const MessageBubble = React.memo(({
   const isUser = item.sender === 'user'
   const isSystem = item.sender === 'system'
 
-
+  const SWIPE_THRESHOLD = 80 // Minimum swipe distance to trigger reply
+  const MAX_SWIPE = 100 // Maximum swipe distance
+  const REACTION_BAR_AUTO_DISMISS_TIME = 3000 // 3 seconds
   // --------------------------------------------------------------------------
   // Effects
   // --------------------------------------------------------------------------
@@ -138,10 +137,11 @@ export const MessageBubble = React.memo(({
         // Trigger reply if threshold reached
         runOnJS(triggerReply)()
       }
-      // Spring back to original position
+      // Spring back to original position with enhanced bounce effect
       translateX.value = withSpring(0, {
-        damping: 15,
-        stiffness: 150,
+        damping: 12, // Lower damping = more bouncy (was 15)
+        stiffness: 180, // Slightly lower stiffness for smoother feel (was 200)
+        mass: 0.8, // Lower mass = faster, more responsive spring
       })
     })
 
