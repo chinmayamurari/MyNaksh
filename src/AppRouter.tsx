@@ -14,8 +14,8 @@ export default function AppRouter() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName='Home' screenOptions={{ headerShown: true }} >
-        <Stack.Screen name="Home" component={HomeScreen} screenOptions={{ headerShown: false }} />
-        <Stack.Screen name="ChatScreen" component={ChatScreen}   screenOptions={{ headerShown: false }}/>
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ChatScreen" component={ChatScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
