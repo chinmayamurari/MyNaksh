@@ -71,14 +71,10 @@ export default function ChatScreen() {
   }, [messages.length])
 
   const handleSend = useCallback((messageText: string) => {
-    if (!messageText.trim()) {
-      return
-    }
-
     const newMessage: Message = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       sender: 'user',
-      text: messageText.trim(),
+      text: messageText,
       timestamp: Date.now(),
       type: 'text',
     }
