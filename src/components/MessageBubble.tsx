@@ -1,10 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
-  StyleSheet,
-  Platform,
-  Pressable,
 } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -15,9 +13,14 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated'
-import { EmojiReactionBar } from './EmojiReactionBar'
+import { MessageContent } from './atoms/MessageContent'
 import { useChatStore } from '../store/chatStore'
+import { styles } from './styles/MessageBubble.styles'
+import { formatTime, getSenderLabel } from './utils/messageBubble.utils'
 
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 export interface Message {
   id: string
   sender: string
@@ -34,53 +37,43 @@ interface MessageBubbleProps {
   item: Message
 }
 
-const formatTime = (timestamp: number): string => {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true 
-  })
-}
-
-const getSenderLabel = (sender: string): string => {
-  switch (sender) {
-    case 'user':
-      return 'You'
-    case 'ai_astrologer':
-      return 'AI Astrologer'
-    case 'human_astrologer':
-      return 'Astrologer Vikram'
-    case 'system':
-      return 'System'
-    default:
-      return sender
-  }
-}
-
 export const MessageBubble = React.memo(({
   item,
 }: MessageBubbleProps) => {
-  // Direct access to store - only get actions, no subscriptions needed
+
+  
   const handleReaction = useChatStore((state) => state.handleReaction)
   const setReplyingTo = useChatStore((state) => state.setReplyingTo)
   
-  const isUser = item.sender === 'user'
-  const isSystem = item.sender === 'system'
-  const [showReactionBar, setShowReactionBar] = useState(false)
-  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Reanimated shared values for swipe gesture
-  const translateX = useSharedValue(0)
+  // --------------------------------------------------------------------------
+  // Constants
+  // --------------------------------------------------------------------------
   const SWIPE_THRESHOLD = 80 // Minimum swipe distance to trigger reply
   const MAX_SWIPE = 100 // Maximum swipe distance
+  const REACTION_BAR_AUTO_DISMISS_TIME = 3000 // 3 seconds
 
-  // Auto-dismiss reaction bar after 3 seconds if no selection
+  // --------------------------------------------------------------------------
+  // Derived Values
+  // --------------------------------------------------------------------------
+  const isUser = item.sender === 'user'
+  const isSystem = item.sender === 'system'
+
+  // --------------------------------------------------------------------------
+  // State & Refs
+  // --------------------------------------------------------------------------
+  const [showReactionBar, setShowReactionBar] = useState(false)
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const translateX = useSharedValue(0) // Reanimated shared value for swipe gesture
+
+  // --------------------------------------------------------------------------
+  // Effects
+  // --------------------------------------------------------------------------
+  // Auto-dismiss reaction bar after timeout if no selection
   useEffect(() => {
     if (showReactionBar) {
       dismissTimerRef.current = setTimeout(() => {
         setShowReactionBar(false)
-      }, 3000)
+      }, REACTION_BAR_AUTO_DISMISS_TIME)
     }
 
     return () => {
@@ -90,6 +83,9 @@ export const MessageBubble = React.memo(({
     }
   }, [showReactionBar])
 
+  // --------------------------------------------------------------------------
+  // Event Handlers
+  // --------------------------------------------------------------------------
   const handleLongPress = () => {
     if (!isSystem) {
       setShowReactionBar(true)
@@ -123,12 +119,13 @@ export const MessageBubble = React.memo(({
     setShowReactionBar(false)
   }
 
-  // Handle reply callback - directly update store
   const triggerReply = () => {
     setReplyingTo(item)
   }
 
-  // Pan gesture handler - runs on UI thread
+  // --------------------------------------------------------------------------
+  // Gesture Handlers
+  // --------------------------------------------------------------------------
   const panGesture = Gesture.Pan()
     .activeOffsetX([10, Infinity]) // Only activate for right swipe (minimum 10px)
     .failOffsetY([-10, 10]) // Fail if vertical movement is too large (prevents interference with scrolling)
@@ -155,14 +152,15 @@ export const MessageBubble = React.memo(({
       })
     })
 
-  // Animated style for message bubble
+  // --------------------------------------------------------------------------
+  // Animated Styles
+  // --------------------------------------------------------------------------
   const animatedBubbleStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: translateX.value }],
     }
   })
 
-  // Animated style for reply icon (opacity and position)
   const animatedReplyIconStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       translateX.value,
@@ -182,66 +180,16 @@ export const MessageBubble = React.memo(({
     }
   })
 
-  // Render the pressable message content
-  const renderPressableContent = () => (
-    <Pressable
-      delayLongPress={1000}
-      onLongPress={handleLongPress}
-      onPress={handlePress}
-    >
-      <View style={styles.bubbleWrapper}>
-        <View
-          style={[
-            styles.messageBubble,
-            isUser ? styles.userBubble : styles.otherBubble,
-          ]}
-        >
-          <Text
-            style={[
-              styles.messageText,
-              isUser ? styles.userMessageText : styles.otherMessageText,
-            ]}
-          >
-            {item.text}
-          </Text>
-        </View>
-        {item.reaction && (
-          <View
-            style={[
-              styles.reactionsContainer,
-              isUser ? styles.userReactionsContainer : styles.otherReactionsContainer,
-            ]}
-          >
-            <View style={styles.reactionBadge}>
-              <Text style={styles.reactionEmoji}>{item.reaction}</Text>
-            </View>
-          </View>
-        )}
-      </View>
-      {showReactionBar && (
-        <View style={[
-          styles.reactionBarWrapper,
-        ]}>
-          <EmojiReactionBar
-            visible={showReactionBar}
-            onEmojiSelect={handleEmojiSelect}
-            onDismiss={handleDismiss}
-            isUserMessage={isUser}
-          />
-        </View>
-      )}
-    </Pressable>
+  // --------------------------------------------------------------------------
+  // Render Helpers
+  // --------------------------------------------------------------------------
+  const renderSystemMessage = () => (
+    <View style={styles.systemMessageContainer}>
+      <Text style={styles.systemMessageText}>{item.text}</Text>
+    </View>
   )
 
-  if (isSystem) {
-    return (
-      <View style={styles.systemMessageContainer}>
-        <Text style={styles.systemMessageText}>{item.text}</Text>
-      </View>
-    )
-  }
-
-  return (
+  const renderRegularMessage = () => (
     <View
       style={[
         styles.messageContainer,
@@ -265,7 +213,16 @@ export const MessageBubble = React.memo(({
 
         <GestureDetector gesture={panGesture}>
           <Animated.View style={animatedBubbleStyle}>
-            {renderPressableContent()}
+            <MessageContent
+              text={item.text}
+              reaction={item.reaction}
+              isUser={isUser}
+              showReactionBar={showReactionBar}
+              onLongPress={handleLongPress}
+              onPress={handlePress}
+              onEmojiSelect={handleEmojiSelect}
+              onDismiss={handleDismiss}
+            />
           </Animated.View>
         </GestureDetector>
       </View>
@@ -274,6 +231,15 @@ export const MessageBubble = React.memo(({
       </Text>
     </View>
   )
+
+  // --------------------------------------------------------------------------
+  // Main Render
+  // --------------------------------------------------------------------------
+  if (isSystem) {
+    return renderSystemMessage()
+  }
+
+  return renderRegularMessage()
 }, (prevProps, nextProps) => {
   // Return true if props are equal (skip re-render), false if different (re-render)
   return (
@@ -287,152 +253,5 @@ export const MessageBubble = React.memo(({
 
 MessageBubble.displayName = 'MessageBubble'
 
-const styles = StyleSheet.create({
-  messageContainer: {
-    marginBottom: 16,
-    maxWidth: '80%',
-    overflow: 'visible',
-  },
-  userMessageContainer: {
-    alignSelf: 'flex-end',
-    alignItems: 'flex-end',
-  },
-  otherMessageContainer: {
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  senderLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
-    marginLeft: 4,
-  },
-  bubbleWrapper: {
-    position: 'relative',
-  },
-  messageBubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  userBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomRightRadius: 4,
-  },
-  otherBubble: {
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  userMessageText: {
-    color: '#FFFFFF',
-  },
-  otherMessageText: {
-    color: '#000000',
-  },
-  timestamp: {
-    fontSize: 11,
-    color: '#999',
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  userTimestamp: {
-    textAlign: 'right',
-    marginRight: 4,
-  },
-  systemMessageContainer: {
-    alignSelf: 'center',
-    backgroundColor: '#E8E8E8',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    marginVertical: 8,
-    maxWidth: '90%',
-  },
-  systemMessageText: {
-    fontSize: 13,
-    color: '#666',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  reactionBarWrapper: {
-    position: 'absolute',
-    bottom:-16,
-    width: '100%',
-  },
-  reactionsContainer: {
-    position: 'absolute',
-    bottom: -6,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    borderRadius: 12,
-    zIndex: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.15,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  userReactionsContainer: {
-    right: 4,
-  },
-  otherReactionsContainer: {
-    left: 4,
-  },
-  reactionBadge: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-  },
-  reactionEmoji: {
-    fontSize: 12,
-  },
-  swipeContainer: {
-    position: 'relative',
-    overflow: 'visible',
-  },
-  replyIconContainer: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#007AFF',
-    zIndex: 1,
-    top: '50%',
-    marginTop: -25, // Center vertically
-  },
-  replyIconContainerUser: {
-    left: -60,
-  },
-  replyIconContainerOther: {
-    left: 0, // Always on the left side for right swipe
-  },
-  replyIcon: {
-    fontSize: 24,
-  },
-})
+
 
