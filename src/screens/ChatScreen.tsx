@@ -1,8 +1,7 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { 
   FlatList, 
-  StyleSheet, 
-  View,
+  StyleSheet,
 } from 'react-native'
 import { MessageBubble, Message } from '../components/MessageBubble'
 import { ChatInput } from '../components/ChatInput'
@@ -60,12 +59,32 @@ const mockData: Message[] = [
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>(mockData)
+  const flatListRef = useRef<FlatList>(null)
 
-  const handleSend = (message: string) => {
-    // TODO: Handle sending message
-    console.log('Sending message:', message)
-    // You can add the message to mockData or call an API here
-  }
+  // Auto-scroll to bottom when new message is added
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true })
+      }, 100)
+    }
+  }, [messages.length])
+
+  const handleSend = useCallback((messageText: string) => {
+    if (!messageText.trim()) {
+      return
+    }
+
+    const newMessage: Message = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      sender: 'user',
+      text: messageText.trim(),
+      timestamp: Date.now(),
+      type: 'text',
+    }
+
+    setMessages((prevMessages) => [...prevMessages, newMessage])
+  }, [])
 
   const handleReaction = useCallback((messageId: string, emoji: string) => {
     // Only update state when reaction is actually selected
@@ -94,11 +113,15 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.container}>
 
       <FlatList
+        ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
+        onContentSizeChange={() => {
+          flatListRef.current?.scrollToEnd({ animated: true })
+        }}
       />
       <ChatInput onSend={handleSend} />
 
