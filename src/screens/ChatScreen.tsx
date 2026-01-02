@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useState, useCallback } from 'react'
 import { 
   FlatList, 
   StyleSheet, 
-  SafeAreaView
+  View,
 } from 'react-native'
 import { MessageBubble, Message } from '../components/MessageBubble'
 import { ChatInput } from '../components/ChatInput'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const mockData: Message[] = [
   {
@@ -58,23 +59,51 @@ const mockData: Message[] = [
 
 
 export default function ChatScreen() {
+  const [messages, setMessages] = useState<Message[]>(mockData)
+
   const handleSend = (message: string) => {
     // TODO: Handle sending message
     console.log('Sending message:', message)
     // You can add the message to mockData or call an API here
   }
 
+  const handleReaction = useCallback((messageId: string, emoji: string) => {
+    // Only update state when reaction is actually selected
+    // Allow only one reaction at a time - toggle if same emoji, replace if different
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) => {
+        if (msg.id === messageId) {
+          // If same emoji is selected, remove it (toggle off)
+          // If different emoji is selected, replace the current one
+          const newReaction = msg.reaction === emoji ? undefined : emoji
+          return { ...msg, reaction: newReaction }
+        }
+        return msg
+      })
+    )
+  }, [])
+
+  const renderItem = useCallback(
+    ({ item }: { item: Message }) => (
+      <MessageBubble item={item} onReaction={handleReaction} />
+    ),
+    [handleReaction]
+  )
+
   return (
     <SafeAreaView style={styles.container}>
+
       <FlatList
-        data={mockData}
+        data={messages}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <MessageBubble item={item} />}
+        renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
       />
       <ChatInput onSend={handleSend} />
+
     </SafeAreaView>
+
   )
 }
 
