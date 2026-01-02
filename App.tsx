@@ -6,9 +6,9 @@
  */
 
 import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
-import { GestureHandlerRootView, Text } from 'react-native-gesture-handler';
-import Animated,{useAnimatedStyle, useSharedValue, withSpring,} from 'react-native-reanimated';
+import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { GestureHandlerRootView, } from 'react-native-gesture-handler';
+
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -29,23 +29,10 @@ function App() {
 
 function AppContent() {
   const safeAreaInsets = useSafeAreaInsets();
-  const offset = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: offset.value }],
-    };
-  });
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => {
-        offset.value = withSpring(offset.value + 100);
-      }}>
-        <Animated.View style={[styles.box,animatedStyle]}>
-        <Text>Click me</Text>
-        </Animated.View>
-      </TouchableOpacity>
       <NewAppScreen
         templateFileName="App.tsx"
         safeAreaInsets={safeAreaInsets}
