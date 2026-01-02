@@ -7,19 +7,40 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native'
+import { useChatStore } from '../store/chatStore'
 
-interface ChatInputProps {
-  onSend: (message: string) => void
+const getSenderLabel = (sender: string): string => {
+  switch (sender) {
+    case 'user':
+      return 'You'
+    case 'ai_astrologer':
+      return 'AI Astrologer'
+    case 'human_astrologer':
+      return 'Astrologer Vikram'
+    case 'system':
+      return 'System'
+    default:
+      return sender
+  }
 }
 
-export const ChatInput = React.memo(({ onSend }: ChatInputProps) => {
+export const ChatInput = React.memo(() => {
   const [inputText, setInputText] = useState('')
+  
+  // Direct access to store - only subscribe to what this component needs
+  const replyingTo = useChatStore((state) => state.replyingTo)
+  const sendMessage = useChatStore((state) => state.sendMessage)
+  const setReplyingTo = useChatStore((state) => state.setReplyingTo)
 
   const handleSend = () => {
     if (inputText.trim().length > 0) {
-      onSend(inputText.trim())
+      sendMessage(inputText.trim())
       setInputText('')
     }
+  }
+  
+  const handleCancelReply = () => {
+    setReplyingTo(null)
   }
 
   const handleSubmitEditing = () => {
@@ -27,29 +48,54 @@ export const ChatInput = React.memo(({ onSend }: ChatInputProps) => {
   }
 
   return (
-    <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Type your message..."
-        placeholderTextColor="#999"
-        value={inputText}
-        onChangeText={setInputText}
-        multiline
-        maxLength={500}
-        keyboardType="default"
-        returnKeyType="send"
-        onSubmitEditing={handleSubmitEditing}
-      />
-      <TouchableOpacity
-        style={[
-          styles.sendButton,
-          inputText.trim().length === 0 && styles.sendButtonDisabled,
-        ]}
-        onPress={handleSend}
-        disabled={inputText.trim().length === 0}
-      >
-        <Text style={styles.sendButtonText}>Send</Text>
-      </TouchableOpacity>
+    <View>
+      {replyingTo && (
+        <View style={styles.replyPreviewContainer}>
+          <View style={styles.replyPreviewContent}>
+            <View style={styles.replyPreviewLeft}>
+              <View style={styles.replyPreviewIndicator} />
+              <View style={styles.replyPreviewTextContainer}>
+                <Text style={styles.replyPreviewLabel}>
+                  Replying to {getSenderLabel(replyingTo.sender)}
+                </Text>
+                <Text style={styles.replyPreviewText} numberOfLines={1}>
+                  {replyingTo.text}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancelReply}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Type your message..."
+          placeholderTextColor="#999"
+          value={inputText}
+          onChangeText={setInputText}
+          multiline
+          maxLength={500}
+          keyboardType="default"
+          returnKeyType="send"
+          onSubmitEditing={handleSubmitEditing}
+        />
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            inputText.trim().length === 0 && styles.sendButtonDisabled,
+          ]}
+          onPress={handleSend}
+          disabled={inputText.trim().length === 0}
+        >
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 })
@@ -105,6 +151,64 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  replyPreviewContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  replyPreviewContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  replyPreviewLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  replyPreviewIndicator: {
+    width: 3,
+    height: 40,
+    backgroundColor: '#007AFF',
+    borderRadius: 2,
+    marginRight: 12,
+  },
+  replyPreviewTextContainer: {
+    flex: 1,
+  },
+  replyPreviewLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginBottom: 2,
+  },
+  replyPreviewText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  cancelButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  cancelButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
     fontWeight: '600',
   },
 })
