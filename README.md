@@ -1,97 +1,414 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# MyNaksh Chat App
 
-# Getting Started
+A React Native chat application for astrological consultations, featuring smooth animations, gesture-based interactions, and efficient state management.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Table of Contents
 
-## Step 1: Start Metro
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Running the App](#running-the-app)
+- [Project Structure](#project-structure)
+- [Technical Implementation](#technical-implementation)
+  - [React Native Reanimated 3](#react-native-reanimated-3)
+  - [Gesture Handling](#gesture-handling)
+  - [State Management](#state-management)
+- [Features](#features)
+- [Dependencies](#dependencies)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Prerequisites
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+Before you begin, ensure you have the following installed:
 
-```sh
-# Using npm
-npm start
+- **Node.js** >= 20.0.0
+- **npm** or **yarn**
+- **React Native CLI** (for running on physical devices)
+- **Xcode** (for iOS development on macOS)
+- **Android Studio** (for Android development)
+- **CocoaPods** (for iOS dependencies)
 
-# OR using Yarn
-yarn start
-```
+## Installation
 
-## Step 2: Build and run your app
+1. **Clone the repository** (if applicable) or navigate to the project directory:
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+   ```bash
+   cd MyNaksh
+   ```
 
-### Android
+2. **Install dependencies**:
 
-```sh
-# Using npm
-npm run android
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-# OR using Yarn
-yarn android
-```
+3. **Install iOS dependencies** (macOS only):
+   ```bash
+   cd ios
+   pod install
+   cd ..
+   ```
+
+## Running the App
 
 ### iOS
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+1. **Start the Metro bundler**:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
 
-```sh
-bundle install
+2. **Run on iOS Simulator** (in a new terminal):
+
+   ```bash
+   npm run ios
+   # or
+   yarn ios
+   ```
+
+3. **Run on a physical iOS device**:
+   ```bash
+   npm run ios -- --device "Your Device Name"
+   ```
+
+### Android
+
+1. **Start the Metro bundler**:
+
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
+
+2. **Run on Android Emulator or Device** (in a new terminal):
+
+   ```bash
+   npm run android
+   # or
+   yarn android
+   ```
+
+   **Note**: Make sure you have an Android emulator running or a physical device connected via USB with USB debugging enabled.
+
+### Troubleshooting
+
+- **Metro bundler issues**: Clear cache with `npm start -- --reset-cache`
+- **iOS build issues**: Clean build folder in Xcode (Product → Clean Build Folder) and re-run `pod install`
+- **Android build issues**: Clean gradle cache with `cd android && ./gradlew clean && cd ..`
+
+## Project Structure
+
+```
+MyNaksh/
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── atoms/           # Atomic components (EmojiReactionBar, FeedbackToggle, MessageContent)
+│   │   ├── styles/          # Component-specific styles
+│   │   ├── utils/           # Utility functions
+│   │   ├── ChatInput.tsx   # Chat input component
+│   │   ├── MessageBubble.tsx # Message bubble with gestures
+│   │   └── RatingOverlay.tsx # Rating modal overlay
+│   ├── screens/             # Screen components
+│   │   ├── HomeScreen.tsx
+│   │   └── ChatScreen.tsx
+│   ├── store/               # State management
+│   │   └── chatStore.ts     # Zustand store
+│   └── AppRouter.tsx        # Navigation setup
+├── android/                 # Android native code
+├── ios/                     # iOS native code
+├── App.tsx                  # Root component
+└── package.json
 ```
 
-Then, and every time you update your native dependencies, run:
+## Technical Implementation
 
-```sh
-bundle exec pod install
+### React Native Reanimated 3
+
+This app uses **React Native Reanimated v4.0.0** (the latest version, which maintains API compatibility with Reanimated 3) to create smooth, performant animations that run on the UI thread.
+
+#### Configuration
+
+Reanimated is configured in `babel.config.js`:
+
+```javascript
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  plugins: [
+    'react-native-reanimated/plugin', // Must be last
+  ],
+};
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+**Important**: The Reanimated plugin must be the last plugin in the Babel configuration.
 
-```sh
-# Using npm
-npm run ios
+#### Usage in the App
 
-# OR using Yarn
-yarn ios
+##### 1. **Swipe-to-Reply Animation** (`MessageBubble.tsx`)
+
+Reanimated is used to create smooth swipe gestures on message bubbles:
+
+- **Shared Values**: `translateX` tracks the horizontal swipe position
+- **Animated Styles**: `useAnimatedStyle` creates reactive styles that update on the UI thread
+- **Spring Animation**: `withSpring` provides natural, bouncy animations when releasing a swipe
+
+```typescript
+const translateX = useSharedValue(0);
+
+const panGesture = Gesture.Pan()
+  .onUpdate(event => {
+    'worklet';
+    translateX.value = Math.min(event.translationX, MAX_SWIPE);
+  })
+  .onEnd(event => {
+    'worklet';
+    translateX.value = withSpring(0, {
+      damping: 12,
+      stiffness: 180,
+      mass: 0.8,
+    });
+  });
+
+const animatedBubbleStyle = useAnimatedStyle(() => ({
+  transform: [{ translateX: translateX.value }],
+}));
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+##### 2. **Reply Icon Animation** (`MessageBubble.tsx`)
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+The reply icon fades in and scales up as the user swipes:
 
-## Step 3: Modify your app
+```typescript
+const animatedReplyIconStyle = useAnimatedStyle(() => {
+  const opacity = interpolate(
+    translateX.value,
+    [0, SWIPE_THRESHOLD / 2, SWIPE_THRESHOLD],
+    [0, 0.5, 1],
+    Extrapolation.CLAMP,
+  );
+  const scale = interpolate(
+    translateX.value,
+    [0, SWIPE_THRESHOLD],
+    [0.5, 1],
+    Extrapolation.CLAMP,
+  );
+  return { opacity, transform: [{ scale }] };
+});
+```
 
-Now that you have successfully run the app, let's make changes!
+##### 3. **Rating Overlay Animations** (`RatingOverlay.tsx`)
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Reanimated's layout animations and enter/exit animations create smooth modal transitions:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```typescript
+<Animated.View
+  entering={FadeIn.duration(300)}
+  exiting={FadeOut.duration(200)}
+  layout={Layout.springify().damping(15).stiffness(150)}
+>
+  {/* Rating content */}
+</Animated.View>
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+##### 4. **Feedback Toggle Animations** (`FeedbackToggle.tsx`)
 
-## Congratulations! :tada:
+Smooth height and opacity transitions when feedback chips appear:
 
-You've successfully run and modified your React Native App. :partying_face:
+```typescript
+const chipsHeight = useSharedValue(0);
+const chipsOpacity = useSharedValue(0);
 
-### Now what?
+React.useEffect(() => {
+  if (feedbackType === 'disliked') {
+    chipsHeight.value = withTiming(40, { duration: 300 });
+    chipsOpacity.value = withTiming(1, { duration: 300 });
+  }
+}, [feedbackType]);
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+#### Key Reanimated Features Used
 
-# Troubleshooting
+- **Worklets**: Functions that run on the UI thread (marked with `'worklet'`)
+- **Shared Values**: Mutable values that can be read/written from both JS and UI threads
+- **Animated Styles**: Styles that automatically update when shared values change
+- **Interpolation**: Smooth value mapping between ranges
+- **Spring/Timing Animations**: Natural motion with configurable physics
+- **Layout Animations**: Automatic animations when layout changes
+- **Enter/Exit Animations**: Smooth component mount/unmount transitions
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+### Gesture Handling
 
-# Learn More
+The app uses **react-native-gesture-handler v2.30.0** for native gesture recognition, providing better performance and more accurate gesture detection than React Native's built-in gesture system.
 
-To learn more about React Native, take a look at the following resources:
+#### Setup
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+The app is wrapped in `GestureHandlerRootView` in `App.tsx`:
+
+```typescript
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppContent />
+    </GestureHandlerRootView>
+  );
+}
+```
+
+#### Swipe-to-Reply Gesture (`MessageBubble.tsx`)
+
+The app implements a custom pan gesture for swiping messages to reply:
+
+```typescript
+const panGesture = Gesture.Pan()
+  .activeOffsetX([10, Infinity]) // Only activate for right swipe (minimum 10px)
+  .failOffsetY([-10, 10]) // Fail if vertical movement is too large
+  .onUpdate(event => {
+    'worklet';
+    if (event.translationX > 0) {
+      translateX.value = Math.min(event.translationX, MAX_SWIPE);
+    }
+  })
+  .onEnd(event => {
+    'worklet';
+    if (event.translationX >= SWIPE_THRESHOLD) {
+      runOnJS(triggerReply)(); // Call JS function from worklet
+    }
+    translateX.value = withSpring(0, { damping: 12, stiffness: 180 });
+  });
+```
+
+#### Gesture Features
+
+- **Pan Gesture**: Detects horizontal swipe movements
+- **Active Offset**: Only activates when swiping right (prevents accidental triggers)
+- **Fail Offset**: Prevents interference with vertical scrolling
+- **Threshold Detection**: Triggers reply action when swipe exceeds 80px
+- **Worklet Integration**: Gesture handlers run on UI thread for 60fps performance
+- **JS Bridge**: Uses `runOnJS()` to call JavaScript functions from gesture handlers
+
+#### Long Press for Reactions
+
+Long press on messages triggers the emoji reaction bar (implemented using React Native's `TouchableOpacity` with `onLongPress`).
+
+### State Management
+
+The app uses **Zustand v5.0.2** for state management, chosen for its simplicity, performance, and minimal boilerplate.
+
+#### Why Zustand?
+
+- ✅ **Lightweight**: ~1KB bundle size
+- ✅ **Simple API**: Minimal boilerplate, easy to learn
+- ✅ **Great Performance**: Selective subscriptions prevent unnecessary re-renders
+- ✅ **TypeScript Support**: Excellent type inference
+- ✅ **React Native Friendly**: Works seamlessly with RN
+- ✅ **Scalable**: Easy to extend as the app grows
+
+#### Store Structure (`src/store/chatStore.ts`)
+
+```typescript
+interface ChatState {
+  messages: Message[];
+  replyingTo: Message | null;
+  activeConversationId: string | null;
+  // Actions
+  setMessages: (messages: Message[]) => void;
+  addMessage: (message: Message) => void;
+  setReplyingTo: (message: Message | null) => void;
+  handleReaction: (messageId: string, emoji: string) => void;
+  handleFeedback: (
+    messageId: string,
+    feedbackType: 'liked' | 'disliked' | null,
+  ) => void;
+  handleFeedbackChip: (messageId: string, chip: string) => void;
+  sendMessage: (text: string) => void;
+  clearMessages: () => void;
+}
+```
+
+#### Usage Pattern
+
+Components subscribe only to the state they need, preventing unnecessary re-renders:
+
+```typescript
+// In ChatScreen.tsx
+const messages = useChatStore(state => state.messages);
+
+// In ChatInput.tsx
+const replyingTo = useChatStore(state => state.replyingTo);
+const sendMessage = useChatStore(state => state.sendMessage);
+
+// In MessageBubble.tsx
+const handleReaction = useChatStore(state => state.handleReaction);
+const handleFeedback = useChatStore(state => state.handleFeedback);
+```
+
+#### Benefits Over Alternatives
+
+**vs. Context API**:
+
+- No provider wrapper needed
+- Selective subscriptions prevent re-render cascades
+- Can be used outside React components
+
+**vs. Redux**:
+
+- Much less boilerplate
+- Smaller bundle size
+- Easier to learn and maintain
+- Sufficient for most app needs
+
+For a detailed comparison, see `STATE_MANAGEMENT_COMPARISON.md`.
+
+## Features
+
+- 💬 **Real-time Chat Interface**: Smooth message display with auto-scrolling
+- 👆 **Swipe-to-Reply**: Swipe right on any message to reply
+- 😊 **Emoji Reactions**: Long press messages to add emoji reactions
+- 👍 **Feedback System**: Like/dislike AI messages with detailed feedback chips
+- ⭐ **Rating Overlay**: Rate your chat experience with animated star ratings
+- 🎨 **Smooth Animations**: All interactions use Reanimated for 60fps animations
+- 📱 **Cross-Platform**: Works on both iOS and Android
+
+## Dependencies
+
+### Core
+
+- `react`: 19.2.0
+- `react-native`: 0.83.1
+
+### Navigation
+
+- `@react-navigation/native`: ^6.1.0
+- `@react-navigation/native-stack`: ^6.9.0
+- `react-native-safe-area-context`: ^5.5.2
+- `react-native-screens`: ^4.0.0
+
+### Animations & Gestures
+
+- `react-native-reanimated`: ^4.0.0
+- `react-native-gesture-handler`: ^2.30.0
+- `react-native-worklets`: ^0.7.0
+
+### State Management
+
+- `zustand`: ^5.0.2
+
+### Development
+
+- `typescript`: ^5.8.3
+- `@types/react`: ^19.2.0
+- `eslint`: ^8.19.0
+- `prettier`: 2.8.8
+
+## License
+
+This project is private and proprietary.
+
+---
+
+**Built with ❤️ using React Native, Reanimated, and Zustand**
