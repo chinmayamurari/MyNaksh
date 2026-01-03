@@ -81,11 +81,11 @@ export const RatingOverlay: React.FC<RatingOverlayProps> = ({
       onRequestClose={handleClose}
     >
       <Animated.View
-        style={styles.overlay}
+        style={[styles.overlay, StyleSheet.absoluteFill, styles.blurBackground]}
         entering={FadeIn.duration(300)}
         exiting={FadeOut.duration(200)}
       >
-        <View style={[StyleSheet.absoluteFill, styles.blurBackground]} />
+        {/* <View style={[StyleSheet.absoluteFill, styles.blurBackground]} /> */}
 
         <Animated.View
           style={styles.content}
@@ -122,30 +122,15 @@ export const RatingOverlay: React.FC<RatingOverlayProps> = ({
               ))}
             </View>
 
-            {rating > 0 && !submitted && (
-              <Animated.View
-                entering={FadeIn.duration(200)}
-                exiting={FadeOut.duration(150)}
-                style={styles.submitContainer}
-              >
+            {!submitted && (
+              <View style={styles.submitContainer}>
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={handleSubmit}
                 >
                   <Text style={styles.submitButtonText}>Submit Rating</Text>
                 </TouchableOpacity>
-              </Animated.View>
-            )}
-
-            {submitted && (
-              <Animated.View
-                entering={FadeIn.duration(200)}
-                style={styles.submittedContainer}
-              >
-                <Text style={styles.submittedText}>
-                  Rating submitted successfully!
-                </Text>
-              </Animated.View>
+              </View>
             )}
           </View>
         </Animated.View>
@@ -245,20 +230,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  submittedContainer: {
-    marginTop: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    backgroundColor: '#E8F5E9',
-    borderRadius: 8,
-    width: '100%',
-  },
-  submittedText: {
-    color: '#2E7D32',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
   },
 })
 
