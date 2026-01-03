@@ -81,11 +81,10 @@ export const RatingOverlay: React.FC<RatingOverlayProps> = ({
       onRequestClose={handleClose}
     >
       <Animated.View
-        style={[styles.overlay, StyleSheet.absoluteFill, styles.blurBackground]}
+        style={[styles.overlay, StyleSheet.absoluteFill]}
         entering={FadeIn.duration(300)}
         exiting={FadeOut.duration(200)}
       >
-        {/* <View style={[StyleSheet.absoluteFill, styles.blurBackground]} /> */}
 
         <Animated.View
           style={styles.content}
@@ -144,8 +143,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  blurBackground: {
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
   },
   content: {
