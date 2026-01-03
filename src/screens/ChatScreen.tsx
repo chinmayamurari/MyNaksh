@@ -67,7 +67,7 @@ export default function ChatScreen() {
   )
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         ref={flatListRef}
         data={messages}
