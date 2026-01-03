@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useLayoutEffect, useMemo } from 'react'
+import React, { useCallback, useRef, useState, useLayoutEffect, useMemo, useEffect } from 'react'
 import { 
   FlatList, 
   StyleSheet,
@@ -10,15 +10,32 @@ import { MessageBubble, Message } from '../components/MessageBubble'
 import { ChatInput } from '../components/ChatInput'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useChatStore } from '../store/chatStore'
-import { RatingOverlay } from '../components/RatingOverlay'
+import RatingOverlay from '../components/RatingOverlay'
 
 export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null)
   const navigation = useNavigation()
   const [showRatingOverlay, setShowRatingOverlay] = useState(false)
+  const previousMessageCountRef = useRef<number>(0)
 
   // Only subscribe to messages - this is all ChatScreen needs
   const messages = useChatStore((state) => state.messages)
+
+  // Scroll to end only when new messages are added, not when content size changes
+  useEffect(() => {
+    const currentMessageCount = messages.length
+    const previousMessageCount = previousMessageCountRef.current
+
+    // Only scroll if a new message was added (count increased)
+    if (currentMessageCount > previousMessageCount) {
+      // Small delay to ensure layout is complete
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true })
+      }, 100)
+    }
+
+    previousMessageCountRef.current = currentMessageCount
+  }, [messages.length])
 
   const handleEndChat = useCallback(() => {
     setShowRatingOverlay(true)
@@ -54,13 +71,11 @@ export default function ChatScreen() {
       <FlatList
         ref={flatListRef}
         data={messages}
+        showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
-        onContentSizeChange={() => {
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }}
       />
       <ChatInput />
       <RatingOverlay
