@@ -98,6 +98,34 @@ Before you begin, ensure you have the following installed:
 
 - **Metro bundler issues**: Clear cache with `npm start -- --reset-cache`
 - **iOS build issues**: Clean build folder in Xcode (Product → Clean Build Folder) and re-run `pod install`
+- **Missing Pods files error**: If you see `Unable to open base configuration reference file` or `Unable to load contents of file list`, install CocoaPods dependencies:
+
+  ```bash
+  # First, install bundle gems (if using Gemfile)
+  bundle install
+
+  # Then install pods
+  cd ios
+  bundle exec pod install
+  # or if not using bundle
+  pod install
+  ```
+
+  **Important**: After installing pods, always use `MyNaksh.xcworkspace` (not `.xcodeproj`) when opening the project in Xcode.
+
+- **Xcode developer directory error**: If you see `xcode-select: error: tool 'xcodebuild' requires Xcode`, run:
+  ```bash
+  sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+  ```
+  You may also need to accept the Xcode license:
+  ```bash
+  sudo xcodebuild -license accept
+  ```
+- **Xcode plugin/framework loading error**: If you see `Library not loaded: CoreSimulator.framework` or `A required plugin failed to load`, run:
+  ```bash
+  xcodebuild -runFirstLaunch
+  ```
+  This initializes Xcode and installs required system frameworks. This may take a few minutes.
 - **Android build issues**: Clean gradle cache with `cd android && ./gradlew clean && cd ..`
 
 ## Project Structure
