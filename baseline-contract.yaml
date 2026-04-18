@@ -8,8 +8,8 @@ allowed_domains:
   - infra
   - db_schema
   - secrets
-  - prod_config
-  # - chat_ui
+  # - prod_config
+  - chat_ui
 allowed_actions:
   file_deletion: false
 
