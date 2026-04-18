@@ -1,0 +1,25 @@
+version: v1.0
+risk_map:
+  canonical:
+    auth:
+      paths: []
+    identity:
+      paths: []
+    infra:
+      paths:
+        - metro.config.js
+        - babel.config.js
+        - ios/
+        - android/
+    db_schema:
+      paths: []
+    secrets:
+      paths: []
+    prod_config:
+      paths:
+        - app.json
+        - package.json
+  custom:
+    chat_ui:
+      paths:
+        - src/

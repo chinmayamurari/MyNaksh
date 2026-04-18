@@ -1,0 +1,25 @@
+#!/bin/bash
+# Cursor's `agent` often prints a leading newline before section markers; prx requires
+# stdout to start with "--- risk-map.yaml ---" (ICE.E8.F4). Delegate to the real agent
+# and emit from the first risk-map marker onward.
+set -euo pipefail
+REAL="${PRX_CURSOR_AGENT:-$HOME/.local/bin/agent}"
+if [ ! -x "$REAL" ]; then
+  echo "scripts/agent: set PRX_CURSOR_AGENT to your Cursor agent binary (default: $HOME/.local/bin/agent)" >&2
+  exit 127
+fi
+out=$(mktemp)
+err=$(mktemp)
+trap 'rm -f "$out" "$err"' EXIT
+"$REAL" "$@" >"$out" 2>"$err"
+ec=$?
+if [ "$ec" -ne 0 ]; then
+  cat "$err" >&2
+  cat "$out"
+  exit "$ec"
+fi
+sed -n '/^--- risk-map.yaml ---$/,$p' "$out"
+if [ -s "$err" ]; then
+  cat "$err" >&2
+fi
+exit 0
