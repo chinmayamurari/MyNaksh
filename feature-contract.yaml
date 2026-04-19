@@ -1,0 +1,14 @@
+version: v1.0
+contract_type: feature
+extends: baseline-contract.yaml
+domains:
+  allow_add:
+    - governance
+    - auth
+    - chat_ui
+    - db_schema
+    - identity
+    - infra
+    - prod_config
+    - secrets
+  allow_remove: []

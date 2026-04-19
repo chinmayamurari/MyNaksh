@@ -1,0 +1,16 @@
+version: v1.0
+contract_type: baseline
+allowed_domains:
+  - governance
+  - auth
+  - chat_ui
+  - db_schema
+  - identity
+  - infra
+  - prod_config
+  - secrets
+description: Baseline intent contract for the MyNaksh React Native app; aligns with repo-root risk map v1.0.
+allowed_actions:
+  file_deletion: false
+
+

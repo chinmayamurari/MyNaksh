@@ -1,0 +1,29 @@
+version: v1.0
+risk_map:
+  canonical:
+    auth:
+      paths: []
+    db_schema:
+      paths: []
+    identity:
+      paths:
+        - ios/MyNaksh/Info.plist
+        - android/app/src/main/AndroidManifest.xml
+    infra:
+      paths:
+        - README.md
+        - android/
+        - ios/
+        - metro.config.js
+        - babel.config.js
+        - package.json
+    prod_config:
+      paths:
+        - ios/.xcode.env
+    secrets:
+      paths:
+        - ios/.xcode.env.local
+  custom:
+    chat_ui:
+      paths:
+        - src/

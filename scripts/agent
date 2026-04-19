@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Praxis ICE.E8.F4: strip preamble before first "--- risk-map.yaml ---" (Cursor agent prints prose first).
+set -euo pipefail
+REAL_AGENT="${HOME}/.local/bin/agent"
+exec 3>&2
+set -o pipefail
+"$REAL_AGENT" "$@" 2>&3 | python3 -c '
+import sys
+MARKER = b"--- risk-map.yaml ---"
+d = sys.stdin.buffer.read()
+i = d.find(MARKER)
+sys.stdout.buffer.write(d[i:] if i != -1 else d)
+'
