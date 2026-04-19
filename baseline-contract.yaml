@@ -6,7 +6,7 @@ allowed_domains:
   - chat_ui
   - db_schema
   - identity
-  - infra
+  # - infra
   - prod_config
   - secrets
 description: Baseline intent contract for the MyNaksh React Native app; aligns with repo-root risk map v1.0.
