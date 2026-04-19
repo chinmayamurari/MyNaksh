@@ -17,6 +17,7 @@ risk_map:
         - metro.config.js
         - babel.config.js
         - package.json
+        - yarn.lock
     prod_config:
       paths:
         - ios/.xcode.env
