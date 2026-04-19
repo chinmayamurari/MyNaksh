@@ -1,0 +1,34 @@
+version: v1.0
+risk_map:
+  canonical:
+    auth:
+      paths:
+        - App.tsx
+        - src/AppRouter.tsx
+    identity:
+      paths:
+        - src/store/
+    infra:
+      paths:
+        - android/
+        - ios/
+        - Gemfile
+        - metro.config.js
+        - babel.config.js
+    db_schema:
+      paths: []
+    secrets:
+      paths:
+        - .env
+        - .env.local
+        - android/app/google-services.json
+    prod_config:
+      paths:
+        - app.json
+        - android/app/build.gradle
+        - ios/Podfile
+  custom:
+    chat_ui:
+      paths:
+        - src/screens/
+        - src/components/
