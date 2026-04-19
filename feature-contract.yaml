@@ -8,7 +8,7 @@ domains:
     - chat_ui
     - db_schema
     - identity
-    - infra
+    # - infra
     - prod_config
     - secrets
   allow_remove: []
