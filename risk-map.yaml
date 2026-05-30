@@ -32,3 +32,6 @@ risk_map:
       paths:
         - src/screens/
         - src/components/
+    root_docs:
+      paths:
+        - chaitanya.txt

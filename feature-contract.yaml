@@ -2,5 +2,7 @@ version: v1.0
 contract_type: feature
 extends: baseline-contract.yaml
 domains:
-  allow_add: []
+  allow_add:
+    - governance
+    - root_docs
   allow_remove: []
