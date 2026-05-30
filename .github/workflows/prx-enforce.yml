@@ -1,0 +1,41 @@
+name: Praxis ICE enforce
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prx-enforce-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download prx from Google Drive (POC)
+        env:
+          DRIVE_FILE_ID: 12jaiM_0rBM-78ZoKJnMOocBTZXdo8-9u
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install gdown
+          mkdir -p bin
+          python3 -m gdown "$DRIVE_FILE_ID" -O bin/prx
+          chmod +x bin/prx
+          ./bin/prx --help >/dev/null
+
+      - name: Verify governance files exist
+        run: |
+          test -f risk-map.yaml
+          test -f baseline-contract.yaml
+          test -f feature-contract.yaml
+
+      - name: prx enforce
+        env:
+          PRX_NO_PROGRESS: "1"
+        run: ./bin/prx enforce
